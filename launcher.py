@@ -8,7 +8,9 @@ from PyQt5.QtWidgets import QApplication
 import time
 import cv2
 from camera import Camera 
-from mainUI import Window
+from detection import Model
+from openVideo import Video
+
 import sys
 class runApplication:
 
@@ -17,22 +19,24 @@ class runApplication:
         cam.toDisplay = False
         cam.publish(param)
 
+    def runVideo(param):
+        cam = Video()#Camera()
+        cam.toDisplay = True
+        cam.publish(param)
+
     def closeCamera(param):
         print("Opening Camera.")
         time.sleep(60)
         print("Closing Camera.")
         param['camStatus'].value = False
 
-    def runUI(param):
-        while param['frame'].value is None:
+    def runModel(param):
+        while param['videoframe'].value is None:
             continue # wait while frame is available
-        app = QApplication(sys.argv)
-        win = Window() #call pyqt5 window
+        mod = Model()
         while(param['camStatus'].value):
-            print(param['frame'].value)
-            win
-            #win.showFrame()
-        #ip.closeDisplay()
+            mod.receiveFrame(param)
+
 
 if __name__ == '__main__':
     ra =runApplication
@@ -40,11 +44,14 @@ if __name__ == '__main__':
 
     param['camStatus'] = Manager().Value('camStatus', False)
     param['frame'] = Manager().Value('frame', None)
+    param['videoframe'] = Manager().Value('frame', None)
+
     
 
     p = [
-        Process(target=ra.runCamera, args=(param,)),
-        Process(target=ra.runUI, args=(param,)),
+        #Process(target=ra.runCamera, args=(param,)),
+        Process(target=ra.runVideo, args=(param,)),
+        Process(target=ra.runModel, args=(param,)),
         # Process(target=closeCamera, args=(param,)),
     ]
 
